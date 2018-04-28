@@ -2,26 +2,54 @@
   #app
     img(src='./assets/logo.png')
     h1 PlatziMusic
+    select( v-model:value="selectedCountry" )
+      option(v-for="country in countries" v-bind:value="country.value") {{ country.name }}
+    spinner(v-show="showSpinner")
     ul
-      li(v-for="artist in artists") {{ artist.name }}
+      artist(v-for="artist in artists" v-bind:artist="artist" v-bind:key="artist.mbid")
 </template>
 
 <script>
+import Artist from './components/Artist.vue'
 import getArtist from './api'
+import Spinner from './components/Spinner.vue'
 
 export default {
   name: 'app',
   data () {
     return {
-      artists: []
+      artists: [],
+      countries: [
+        {name: 'Argentina', value: 'argentina'},
+        {name: 'Colombia', value: 'colombia'},
+        {name: 'España', value: 'spain'}
+      ],
+      selectedCountry: 'argentina',
+      showSpinner: true
     }
   },
+  methods: {
+    refreshArtist: function(selectedCountry){ 
+      const self = this
+      this.showSpinner = true
+      getArtist(self.selectedCountry)
+        .then(function(artists) {
+          self.artists = artists
+          self.showSpinner = false
+        })
+    }
+  },
+  watch: {
+    selectedCountry: function(){
+      this.refreshArtist()
+    }
+  },
+  components: {
+    Artist,
+    Spinner
+  },
   mounted: function() {
-    const self = this
-    getArtist()
-      .then(function(artists) {
-        self.artists = artists
-      })
+      this.refreshArtist()
   }
 }
 </script>
